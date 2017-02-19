@@ -17,7 +17,7 @@ namespace
 
   struct BlockInstructions
   {
-    std::set<StringRef> use_set,def_set,IN,OUT;
+    std::set<StringRef> use_set,def_set,IN,OUT,LIVE;
   };
 
 	struct Bblocks
@@ -44,14 +44,14 @@ namespace
    			int count=0;
 	   		for (Function::iterator block_iterator = F.begin(), block_iterator_end = F.end(); block_iterator != block_iterator_end; ++block_iterator,count++)
    			{
-   				errs() << "Basic block_iterator (name=" << block_iterator->getName() << ") has "<< block_iterator->size() << " instructions.\n------------------------------------------------\n\n";
+   				//errs() << "Basic block_iterator (name=" << block_iterator->getName() << ") has "<< block_iterator->size() << " instructions.\n------------------------------------------------\n\n";
    				BasicBlock& block= *block_iterator;				
-   				BB[count].bb=&block;
+          BB[count].bb=&block;
           BB[count].bi=new BlockInstructions[block.size()];
           int instruction_count=0;
           for (BasicBlock::iterator i = block.begin(), e = block.end(); i != e ; ++i,++instruction_count)
           {
-            errs() << "\t\t"<<*i << "\n";
+            //errs() << "\t\t"<<*i << "\n";
             Instruction *pi=&*i;
             if(pi->getName().compare(""))
             {
@@ -142,7 +142,42 @@ namespace
    			}while(flag);
 
 
-			   			
+
+
+        count=0;
+			  for (Function::iterator block_iterator = F.begin(), block_iterator_end = F.end(); block_iterator != block_iterator_end; ++block_iterator,count++)
+        {
+          BasicBlock& block= *block_iterator;
+          std::set<StringRef> LIVE=BB[count].OUT;       
+          
+          for (int instruction_count=block.size()-1;instruction_count>=0;instruction_count--)
+          {
+            BB[count].bi[instruction_count].LIVE=LIVE;
+
+            std::set<StringRef> diff;
+            std::set_difference(LIVE.begin(),LIVE.end(),BB[count].bi[instruction_count].def_set.begin(),BB[count].bi[instruction_count].def_set.end(),std::inserter(diff,diff.end()));
+            LIVE=std::set<StringRef>();
+            LIVE.insert(BB[count].bi[instruction_count].use_set.begin(),BB[count].bi[instruction_count].use_set.end());
+            LIVE.insert(diff.begin(),diff.end());            
+          }
+
+          int instruction_count=0;
+          std::set<StringRef>::iterator it;
+          for (BasicBlock::iterator i = block.begin(), e = block.end(); i != e ; ++i,instruction_count++)
+          {
+            errs() << "\t\t"<<*i << "\n\t";
+            for (it = BB[count].bi[instruction_count].LIVE.begin(); it != BB[count].bi[instruction_count].LIVE.end(); ++it)
+            { 
+              if(it==BB[count].bi[instruction_count].LIVE.begin())
+                errs() <<*it;
+              else
+                errs() << ", " <<*it;
+            }
+            errs() <<"\n";
+
+          }
+
+        } 			
 
 
 
