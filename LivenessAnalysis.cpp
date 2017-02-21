@@ -26,12 +26,8 @@ namespace
 		BasicBlock *bb;
     BlockInstructions *bi;
 	};
-
-  
-
-
-
-  	struct Live : public FunctionPass 
+  	
+  struct Live : public FunctionPass 
   	{
     	static char ID;
     	Live() : FunctionPass(ID) {}
@@ -44,14 +40,12 @@ namespace
    			int count=0;
 	   		for (Function::iterator block_iterator = F.begin(), block_iterator_end = F.end(); block_iterator != block_iterator_end; ++block_iterator,count++)
    			{
-   				//errs() << "Basic block_iterator (name=" << block_iterator->getName() << ") has "<< block_iterator->size() << " instructions.\n------------------------------------------------\n\n";
    				BasicBlock& block= *block_iterator;				
           BB[count].bb=&block;
           BB[count].bi=new BlockInstructions[block.size()];
           int instruction_count=0;
           for (BasicBlock::iterator i = block.begin(), e = block.end(); i != e ; ++i,++instruction_count)
           {
-            //errs() << "\t\t"<<*i << "\n";
             Instruction *pi=&*i;
             if(pi->getName().compare(""))
             {
@@ -81,29 +75,7 @@ namespace
             }
           }
           BB[count].use_set=BB[count].bi[0].IN;
-
-   			}
-
-        
-        /*std::set<StringRef>::iterator it;
-        for (int j = 0; j < block_count; ++j)
-        {
-          errs() << "Use Set of block" <<j <<"\n------------\n";
-          for (it = BB[j].use_set.begin(); it != BB[j].use_set.end(); ++it)
-          {
-            errs() <<*it <<"\n";
-          }
-
-          errs() <<"Def Set of block" <<j <<"\n------------\n";
-          for (it=BB[j].def_set.begin(); it != BB[j].def_set.end(); ++it)
-          {
-            errs() <<*it <<"\n";
-          }   
-        }
-*/
-
-   			//int k=0;
-        
+   			}        
    			bool flag=false;
    			do
    			{
@@ -111,14 +83,11 @@ namespace
    				for (count=0;count<block_count;count++)
    				{
    					BasicBlock* current_block=BB[count].bb;
-   					//errs() << current_block ->getName()<<"\n";
 
    					for (succ_iterator succ = succ_begin(current_block); succ != succ_end(current_block); ++succ) 
    					{
               BasicBlock *successor = *succ;
- 						 //errs() << current_block ->getName()<<"------>"<<successor->getName()<<"\n";
               int succ_index=findBlockNumber(successor);
- 						 //errs()<<succ_index<<"\n";
  						  if (succ_index==-1)
  						 	   errs()<<"ERROR FINDING OUT SET OF BLOCK"<<"\n";
  						  else
@@ -138,13 +107,13 @@ namespace
  					    flag=true;
  					  }	
    				}
-   				//errs()<<"Pass "<<k++<<":\n";
    			}while(flag);
 
 
 
 
         count=0;
+        unsigned int max=0;
 			  for (Function::iterator block_iterator = F.begin(), block_iterator_end = F.end(); block_iterator != block_iterator_end; ++block_iterator,count++)
         {
           BasicBlock& block= *block_iterator;
@@ -168,35 +137,37 @@ namespace
             errs() << "\t\t"<<*i << "\n\t";
             for (it = BB[count].bi[instruction_count].LIVE.begin(); it != BB[count].bi[instruction_count].LIVE.end(); ++it)
             { 
+              if(BB[count].bi[instruction_count].LIVE.size()>max)
+                max=BB[count].bi[instruction_count].LIVE.size();
               if(it==BB[count].bi[instruction_count].LIVE.begin())
                 errs() <<*it;
               else
                 errs() << ", " <<*it;
             }
             errs() <<"\n";
+          }  
+        }
+        max++;
+        int* histogram=new int[max]; 			  
 
+        for(unsigned int i=0;i<max;i++)
+          histogram[i]=0;
+
+        count=0;
+        for (Function::iterator block_iterator = F.begin(), block_iterator_end = F.end(); block_iterator != block_iterator_end; ++block_iterator,count++)
+        {
+          BasicBlock& block= *block_iterator;
+          for (unsigned int i = 0; i <block.size() ; ++i)
+          {
+            histogram[BB[count].bi[i].LIVE.size()]++;
           }
+        }
+        errs()<<"\n\n";
+        for(unsigned int i=0;i<max;i++)
+        {
+          errs() << i << "\t" << histogram[i] <<"\n";
+        }
 
-        } 			
-
-
-
-/*   			std::set<StringRef>::iterator it;
-   			for (int j = 0; j < block_count; ++j)
-   			{
-   				errs() << "IN Set of block" <<j <<"\n------------\n";
-   				for (it = BB[j].IN.begin(); it != BB[j].IN.end(); ++it)
-				  {
-    				errs() <<*it <<"\n";
-				  }
-
-				  errs() <<"OUT Set of block" <<j <<"\n------------\n";
-   				for (it=BB[j].OUT.begin(); it != BB[j].OUT.end(); ++it)
-				  {
-    				errs() <<*it <<"\n";
-				  } 	
-   			}
-*/          			
    			return false;
    		}
 
