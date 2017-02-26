@@ -186,4 +186,4 @@ namespace
 }	
 
 char Live::ID = 0;
-static RegisterPass<Live> X("live", "Liveness Analysis Pass", false, true);
+static RegisterPass<Live> X("liveness", "Liveness Analysis Pass", false, true);
