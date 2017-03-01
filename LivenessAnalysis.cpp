@@ -46,22 +46,59 @@ namespace
           int instruction_count=0;
           for (BasicBlock::iterator i = block.begin(), e = block.end(); i != e ; ++i,++instruction_count)
           {
+            if(block_iterator==F.begin())
+            {
+              if(i==block.begin())
+              {
+                for(Argument &A : F.getArgumentList())
+                {
+                  BB[0].bi[0].def_set.insert(A.getName()); 
+                  BB[0].def_set.insert(A.getName());  
+                }
+              }
+            }
             Instruction *pi=&*i;
+            std::string s(pi->getOpcodeName());
             if(pi->getName().compare(""))
             {
-	            BB[count].bi[instruction_count].def_set.insert(pi->getName());
-              BB[count].def_set.insert(pi->getName());
+              if(s.compare("alloca"))
+              {
+	             BB[count].bi[instruction_count].def_set.insert(pi->getName());
+                BB[count].def_set.insert(pi->getName());
+              }
             }
-            for (Use &U : pi->operands()) 
-            {
-  				   	Value *v = U.get();
-  						if(isa<Instruction>(v))
-  						{
-  							BB[count].bi[instruction_count].use_set.insert(v->getName());
-  						}
-            }
-         	}
 
+            if (!(s.compare("store")))
+            {
+            //errs()<<*pi<<"\n";
+              Value *v = pi->getOperand(0);
+              if(v->getName().compare(""))
+              {
+                BB[count].bi[instruction_count].use_set.insert(v->getName());
+                //errs()<<v->getName()<<"\t";
+              }
+            
+              v= pi->getOperand(1);
+              if(v->getName().compare(""))
+              {
+                BB[count].bi[instruction_count].def_set.insert(v->getName());
+                BB[count].def_set.insert(v->getName()); 
+                //errs()<<v->getName()<<"\n";
+              }
+            
+            }
+            else
+            {
+              for (Use &U : pi->operands()) 
+              {
+  				   	  Value *v = U.get();
+  						  if(isa<Instruction>(v))
+  						  {
+  							 BB[count].bi[instruction_count].use_set.insert(v->getName());
+  						  }
+              }
+         	  }
+          }
           for(instruction_count=block.size()-1;instruction_count>=0;instruction_count--)
           {
             std::set<StringRef> diff;
