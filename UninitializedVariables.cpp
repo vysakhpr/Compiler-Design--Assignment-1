@@ -72,7 +72,7 @@ namespace
             for (Use &U : pi->operands()) 
             {
               Value *v = U.get();
-              if(isa<Instruction>(v))
+              if(isa<Instruction>(v) || isa<Argument>(v))
               {
                 if(v->getName().compare(""))
                   IS[count].USE.insert(v->getName());

@@ -92,7 +92,7 @@ namespace
               for (Use &U : pi->operands()) 
               {
   				   	  Value *v = U.get();
-  						  if(isa<Instruction>(v))
+  						  if(isa<Instruction>(v) || isa<Argument>(v))
   						  {
   							 BB[count].bi[instruction_count].use_set.insert(v->getName());
   						  }
@@ -148,6 +148,10 @@ namespace
    			}while(flag);
 
 
+
+
+
+
     // count=0;    
     // for (Function::iterator block_iterator = F.begin(), block_iterator_end = F.end(); block_iterator != block_iterator_end; ++block_iterator,count++)
     //     {
@@ -172,7 +176,12 @@ namespace
     //     }
 
 
-
+        // for(Argument &A : F.getArgumentList())
+        //         {
+        //           errs()<<A.getName()<<"\n";
+        //           BB[0].IN.insert(A.getName());  
+        //           BB[0].bi[0].IN.insert(A.getName());  
+        //         }
         count=0;
         unsigned int max=0;
         std::set<StringRef> LIVE1;
