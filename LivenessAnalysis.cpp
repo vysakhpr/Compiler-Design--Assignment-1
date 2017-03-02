@@ -46,17 +46,17 @@ namespace
           int instruction_count=0;
           for (BasicBlock::iterator i = block.begin(), e = block.end(); i != e ; ++i,++instruction_count)
           {
-            if(block_iterator==F.begin())
-            {
-              if(i==block.begin())
-              {
-                for(Argument &A : F.getArgumentList())
-                {
-                  BB[0].bi[0].def_set.insert(A.getName()); 
-                  BB[0].def_set.insert(A.getName());  
-                }
-              }
-            }
+            // if(block_iterator==F.begin())
+            // {
+            //   if(i==block.begin())
+            //   {
+            //     for(Argument &A : F.getArgumentList())
+            //     {
+            //       BB[0].bi[0].def_set.insert(A.getName()); 
+            //       BB[0].def_set.insert(A.getName());  
+            //     }
+            //   }
+            // }
             Instruction *pi=&*i;
             std::string s(pi->getOpcodeName());
             if(pi->getName().compare(""))
@@ -101,6 +101,7 @@ namespace
           }
           for(instruction_count=block.size()-1;instruction_count>=0;instruction_count--)
           {
+
             std::set<StringRef> diff;
             std::set_difference(BB[count].bi[instruction_count].OUT.begin(),BB[count].bi[instruction_count].OUT.end(),BB[count].bi[instruction_count].def_set.begin(),BB[count].bi[instruction_count].def_set.end(),std::inserter(diff,diff.end()));
             BB[count].bi[instruction_count].IN=std::set<StringRef>();
@@ -147,10 +148,34 @@ namespace
    			}while(flag);
 
 
+    // count=0;    
+    // for (Function::iterator block_iterator = F.begin(), block_iterator_end = F.end(); block_iterator != block_iterator_end; ++block_iterator,count++)
+    //     {
+    //       BasicBlock& block= *block_iterator;
+    //       int instruction_count=0;
+    //       std::set<StringRef>::iterator it;
+    //       for (BasicBlock::iterator i = block.begin(), e = block.end(); i != e ; ++i,instruction_count++)
+    //       {
+    //         errs() << "\t\t"<<*i << "\n\t";
+    //         for (it = BB[count].bi[instruction_count].IN.begin(); it != BB[count].bi[instruction_count].IN.end(); ++it)
+    //         { 
+    //           errs()<<*it<<"\t";
+    //         }
+    //         errs()<<"\n";
+    //       }
+    //       for (it = BB[count].IN.begin(); it != BB[count].IN.end(); ++it)
+    //         { 
+    //           errs()<<*it<<"\t";
+    //         }
+    //         errs()<<"\n";
+
+    //     }
+
 
 
         count=0;
         unsigned int max=0;
+        std::set<StringRef> LIVE1;
 			  for (Function::iterator block_iterator = F.begin(), block_iterator_end = F.end(); block_iterator != block_iterator_end; ++block_iterator,count++)
         {
           BasicBlock& block= *block_iterator;
@@ -166,9 +191,25 @@ namespace
             LIVE.insert(BB[count].bi[instruction_count].use_set.begin(),BB[count].bi[instruction_count].use_set.end());
             LIVE.insert(diff.begin(),diff.end());            
           }
-
-          int instruction_count=0;
           std::set<StringRef>::iterator it;
+
+          if(block_iterator==F.begin())
+          {
+            errs()<<"\t";
+            LIVE1=LIVE;
+            for (it = LIVE.begin(); it != LIVE.end(); ++it)
+            { 
+              if(LIVE.size()>max)
+                max=LIVE.size();
+              if(it==LIVE.begin())
+                errs() <<*it;
+              else
+                errs() << ", " <<*it;
+            }
+            errs() <<"\n";
+          }
+          int instruction_count=0;
+          
           for (BasicBlock::iterator i = block.begin(), e = block.end(); i != e ; ++i,instruction_count++)
           {
             errs() << "\t\t"<<*i << "\n\t";
@@ -191,6 +232,7 @@ namespace
           histogram[i]=0;
 
         count=0;
+        histogram[LIVE1.size()]++;
         for (Function::iterator block_iterator = F.begin(), block_iterator_end = F.end(); block_iterator != block_iterator_end; ++block_iterator,count++)
         {
           BasicBlock& block= *block_iterator;
